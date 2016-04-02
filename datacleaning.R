@@ -16,4 +16,7 @@ SUM(tickets_purchased_qty) AS nTickets FROM train GROUP BY purch_party_lkup_id"
 # group by purchase number
 res_v <- dbSendQuery(con, query) 
 number_v <- dbFetch(res_v, n=-1)  # n=-1 means return all
-number_v
+number_v2 = number_v %>% filter(nBuy > 1)
+
+head(number_v2)
+hist(number_v2$nBuy)
