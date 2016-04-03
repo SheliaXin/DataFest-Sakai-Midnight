@@ -9,7 +9,7 @@ ga = fread("approved_ga_data_v2.csv")
 con = dbConnect(RSQLite::SQLite(), ":memory:")
 dbWriteTable(con, "train", purchase)   # data frame -> database table
 
-query <- "SELECT purch_party_lkup_id,  
+query <- "SELECT purch_party_lkup_id, ticket_text,  
 SUM(CASE WHEN tickets_purchased_qty > 0 THEN 1 ELSE 0 END) AS nBuy, 
 SUM(tickets_purchased_qty) AS nTickets FROM train GROUP BY purch_party_lkup_id"
 
@@ -18,12 +18,24 @@ res_v <- dbSendQuery(con, query)
 number_v <- dbFetch(res_v, n=-1)  # n=-1 means return all
 number_v2 = number_v %>% filter(nBuy > 1)
 number_v2$frac = number_v2$nTickets/number_v2$nBuy
+numberScalpers = number_v2 %>% filter(frac > 5)
+
+
+# IMPORTANT #
+oneTimeBuyers = dim(number_v)[1] - dim(number_v2)[1] 
+oneTimeBuyersPerc = oneTimeBuyers/dim(number_v)[1]*100
+
+scalpers = dim(numberScalpers)[1]
+scalpersPerc = scalpers/dim(number_v)[1]*100
+
+trueFans = dim(number_v)[1] - (oneTimeBuyers + scalpers)
+trueFans = trueFans/dim(number_v)[1]*100
 
 qplot(number_v2$frac, bins = 20, main = "Ratio of Total Tickets/Total Purchases",
-      xlab = "Ratio", ylab = "Frequency")
+      xlab = "Ratio", ylab = "Frequency", fill = I("blue"), col = I("red"))
 
 unique(purchase$fin_mkt_nm)
-/;[]
+
 stateFM = c("Georgia", "New York", "Miami", "Columbus", "Washington DC", "Michigan",
             "California", "Texas", "Texas", "Pennsylvania", "Texas", "California",
             "Massachusetts", "Missouri", "Florida", "Califonia", "Nevada", "North Carlonina",
@@ -61,4 +73,4 @@ db3 <- dbFetch(res3, n=-1)
 db3$frac = db3$nTickets/db3$nBuy
 
 qplot(db3$frac, bins = 20, main = "Ratio of Total Tickets/Total Purchases",
-      xlab = "Ratio", ylab = "Frequency")
+      xlab = "Ratio", ylab = "Frequency", fill = I("blue"), col=I("red"))
